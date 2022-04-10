@@ -1,17 +1,18 @@
 PROG=USBasp
-MMCU=attiny45
-MCP=t45
-FCPU=1200000
+MCU=attiny45
+F_CPU=1200000
+CC=avr-gcc
+OBJCOPY=avr-objcopy
+CFLAGS=-std=c99 -Wall -g -Os -mmcu=$(MCU) -DF_CPU=$(F_CPU) -I.
+TARGET=pomodoro
+SRCS=main.c interrupt.c
 
-burn: main.hex
-	avrdude -c $(PROG) -p $(MCP) -U flash:w:./main.hex
+build: $(SRCS)
+	$(CC) $(CFLAGS) -o $(TARGET).bin $(SRCS)
+	$(OBJCOPY) -j .text -j .data -O ihex $(TARGET).bin $(TARGET).hex
 
-build: main.hex
-
-main.hex: main.c interrupt.c
-	avr-gcc -g -Os -mmcu=$(MMCU) -DF_CPU=$(FCPU) -c main.c interrupt.c
-	avr-gcc -g -mmcu=$(MMCU) -o main.elf main.o interrupt.o
-	avr-objcopy -j .text  -j .data -O ihex main.elf main.hex
+burn: build
+	avrdude -c $(PROG) -p $(MCU) -U flash:w:./$(TARGET).hex
 
 clean:
-	rm -f *.elf *.hex *.o
+	rm -f *.bin *.hex *.o

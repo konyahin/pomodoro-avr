@@ -43,7 +43,7 @@ void switch_status()
     set_status();
 }
 
-void main(void)
+int main(void)
 {
     DDRB |= (1 << LED_GREEN);
     DDRB |= (1 << LED_RED);
@@ -56,4 +56,6 @@ void main(void)
     
     while (true) {
     }
+
+    return 0;
 }
