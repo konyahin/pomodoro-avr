@@ -5,7 +5,7 @@ CC=avr-gcc
 OBJCOPY=avr-objcopy
 CFLAGS=-std=c99 -Wall -g -Os -mmcu=$(MCU) -DF_CPU=$(F_CPU) -I.
 TARGET=pomodoro
-SRCS=main.c interrupt.c
+SRCS=main.c interrupt.c music.c
 
 build: $(SRCS)
 	$(CC) $(CFLAGS) -o $(TARGET).bin $(SRCS)

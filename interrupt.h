@@ -1,5 +1,5 @@
-#define BUTTON PB3
-#define INTERRUPT PCINT3
+#define BUTTON PB1
+#define INTERRUPT PCINT1
 
 void
 init_interrupt(void (*on_press) (void));

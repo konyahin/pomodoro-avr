@@ -24,7 +24,8 @@ init_interrupt(void (*on_press) (void))
 ISR (PCINT0_vect)
 {
     int8_t pressed = !(PINB & (1 << BUTTON));
-    if (pressed) {
+    if (pressed)
+    {
         _delay_ms(30);
         pressed = !(PINB & (1 << BUTTON));
         if (pressed)
