@@ -1,12 +1,92 @@
 #include <avr/io.h>
+#include <avr/sleep.h>
 #include <util/delay.h>
 #include <stdbool.h>
+#include <stddef.h>
 
 #include "interrupt.h"
 #include "music.h"
+#include "timer.h"
 
 #define LED_GREEN PB4
 #define LED_RED PB3
+
+#define WORK_MIN 25
+#define REST_MIN 5
+
+melody_t start_melody;
+melody_t work_melody;
+melody_t rest_melody;
+melody_t end_melody;
+
+enum status_e
+{
+    ON,
+    WORK,
+    REST
+};
+
+int8_t status = ON;
+
+void status_to_on()
+{
+    status = ON;
+    PORTB &= ~(1 << LED_RED);
+    PORTB &= ~(1 << LED_GREEN);
+    play_melody(&end_melody);
+    set_timer_callback(0, NULL);
+
+    set_sleep_mode(SLEEP_MODE_PWR_DOWN);
+    sleep_enable();
+    sleep_cpu();
+}
+
+void status_to_rest()
+{
+    status = REST;
+    PORTB &= ~(1 << LED_RED);
+    PORTB |= (1 << LED_GREEN);
+    play_melody(&rest_melody);
+    set_timer_callback(REST_MIN, &status_to_on);
+}
+
+void status_to_work()
+{
+    status = WORK;
+    PORTB |= (1 << LED_RED);
+    PORTB &= ~(1 << LED_GREEN);
+    play_melody(&work_melody);
+    set_timer_callback(WORK_MIN, &status_to_rest);
+}
+
+void switch_status()
+{
+    if (status == ON)
+        status_to_work();
+    else
+        status_to_on();
+}
+
+int main(void)
+{
+    DDRB |= (1 << LED_GREEN);
+    DDRB |= (1 << LED_RED);
+
+    init_interrupt(switch_status);
+    init_music();
+    init_timer();
+
+    PORTB |= (1 << LED_GREEN);
+    PORTB |= (1 << LED_RED);
+    play_melody(&start_melody);
+    PORTB &= ~(1 << LED_GREEN);
+    PORTB &= ~(1 << LED_RED);
+
+    while (true) {
+    }
+
+    return 0;
+}
 
 melody_t start_melody = {
     .length = 5,
@@ -19,7 +99,7 @@ melody_t start_melody = {
     }
 };
 
-melody_t start_work_melody = {
+melody_t work_melody = {
     .length = 4,
     .tones = {
         TONE_A,
@@ -29,7 +109,7 @@ melody_t start_work_melody = {
     }
 };
 
-melody_t start_rest_melody = {
+melody_t rest_melody = {
     .length = 4,
     .tones = {
         TONE_A,
@@ -50,61 +130,3 @@ melody_t end_melody = {
         TONE_D
     }
 };
-
-enum status_e
-{
-    ON,
-    WORK,
-    REST
-};
-
-int8_t status = ON;
-
-void set_status()
-{
-    switch (status)
-    {
-        case ON:
-            PORTB &= ~(1 << LED_RED);
-            PORTB &= ~(1 << LED_GREEN);
-            play_melody(&end_melody);
-            break;
-        case WORK:
-            PORTB |= (1 << LED_RED);
-            PORTB &= ~(1 << LED_GREEN);
-            play_melody(&start_work_melody);
-            break;
-        case REST:
-            PORTB &= ~(1 << LED_RED);
-            PORTB |= (1 << LED_GREEN);
-            play_melody(&start_rest_melody);
-            break;
-    }
-}
-
-void switch_status()
-{
-    if (++status > REST)
-        status = ON;
-    set_status();
-}
-
-int main(void)
-{
-    DDRB |= (1 << LED_GREEN);
-    DDRB |= (1 << LED_RED);
-
-    init_interrupt(switch_status);
-    init_music();
-
-    PORTB |= (1 << LED_GREEN);
-    PORTB |= (1 << LED_RED);
-    play_melody(&start_melody);
-    PORTB &= ~(1 << LED_GREEN);
-    PORTB &= ~(1 << LED_RED);
-
-    while (true) {
-    }
-
-    return 0;
-}

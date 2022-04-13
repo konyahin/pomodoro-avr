@@ -1,3 +1,6 @@
+#ifndef MUSICH
+#define MUSICH
+
 #define	SOUND PB0
 
 #define TONE_A 42
@@ -25,3 +28,6 @@ init_music(void);
 
 void
 play_melody(const melody_t *melody);
+
+
+#endif

@@ -4,14 +4,17 @@
 
 #include "interrupt.h"
 
-static void (*callback)(void);
+static void (*callback) (void);
 
 void
 init_interrupt(void (*on_press) (void))
 {
     callback = on_press;
 
+    // as input
     DDRB &= ~(1 << BUTTON);
+    // activate inner pull-up resitor
+    PORTB |= (1 << BUTTON);
 
     cli();
     // enable pin-change interrupt
