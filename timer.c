@@ -4,6 +4,9 @@
 
 #include "timer.h"
 
+// should be 60, but I calibrate it for my needs
+#define SEC 57
+
 static uint8_t minutes = 0;
 static uint8_t seconds = 0;
 static void (*callback) (void) = NULL;
@@ -17,7 +20,7 @@ ISR (TIMER1_COMPA_vect)
     }
     else
     {
-        seconds = 60;
+        seconds = SEC;
         --minutes;
     }
     if (minutes == 0 && callback != NULL)
@@ -43,5 +46,5 @@ set_timer_callback(uint8_t min, void (*call) (void))
 {
     minutes = min;
     callback = call;
-    seconds = 60;
+    seconds = SEC;
 }
