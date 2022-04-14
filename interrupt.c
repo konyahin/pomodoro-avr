@@ -1,5 +1,6 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
+#include <avr/sleep.h>
 #include <util/delay.h>
 
 #include "interrupt.h"
@@ -12,27 +13,18 @@ init_interrupt(void (*on_press) (void))
     callback = on_press;
 
     // as input
-    DDRB &= ~(1 << BUTTON);
-    // activate inner pull-up resitor
-    PORTB |= (1 << BUTTON);
-
-    cli();
-    // enable pin-change interrupt
-    GIMSK |= (1 << PCIE);
-    // interrupt on specific pin
-    PCMSK |= (1 << INTERRUPT);
-    sei();
+    DDRB &= ~(1 << PB2);
+    // enable external interrupt
+    GIMSK |= (1 << INT0);
 }
 
-ISR (PCINT0_vect)
+ISR (INT0_vect)
 {
-    int8_t pressed = !(PINB & (1 << BUTTON));
-    if (pressed)
-    {
-        _delay_ms(30);
-        pressed = !(PINB & (1 << BUTTON));
-        if (pressed)
-            (*callback)();
-    }
+    if (PINB & (1 << PB2))
+        return;
+    _delay_ms(30);
+    if (PINB & (1 << PB2))
+        return;
+    (*callback)();
 }
 

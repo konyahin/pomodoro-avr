@@ -1,8 +1,5 @@
-#ifndef INTERRUPTH
-#define INTERRUPTH
-
-#define BUTTON PB1
-#define INTERRUPT PCINT1
+#ifndef INTERRUPT_H_
+#define INTERRUPT_H_
 
 void
 init_interrupt(void (*on_press) (void));

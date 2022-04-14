@@ -1,5 +1,6 @@
 #include <avr/io.h>
 #include <avr/sleep.h>
+#include <avr/interrupt.h>
 #include <util/delay.h>
 #include <stdbool.h>
 #include <stddef.h>
@@ -28,6 +29,7 @@ enum status_e
 
 int8_t status = ON;
 
+int8_t sleep = false;
 void status_to_on()
 {
     status = ON;
@@ -35,10 +37,7 @@ void status_to_on()
     PORTB &= ~(1 << LED_GREEN);
     play_melody(&end_melody);
     set_timer_callback(0, NULL);
-
-    set_sleep_mode(SLEEP_MODE_PWR_DOWN);
-    sleep_enable();
-    sleep_cpu();
+    sleep = true;
 }
 
 void status_to_rest()
@@ -72,6 +71,10 @@ int main(void)
     DDRB |= (1 << LED_GREEN);
     DDRB |= (1 << LED_RED);
 
+    set_sleep_mode(SLEEP_MODE_PWR_DOWN);
+    sleep_enable();
+    sei();
+
     init_interrupt(switch_status);
     init_music();
     init_timer();
@@ -83,6 +86,11 @@ int main(void)
     PORTB &= ~(1 << LED_RED);
 
     while (true) {
+        if (sleep)
+        {
+            sleep = false;
+            sleep_cpu();
+        }
     }
 
     return 0;
